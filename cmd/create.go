@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/joserodrigues/jira-cli/internal/jira"
+	"github.com/joselrodrigues/jira-cli/internal/jira"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

@@ -1,4 +1,4 @@
-package cmd
+package jira
 
 import (
 	"encoding/json"
@@ -64,7 +64,7 @@ var transitionDoCmd = &cobra.Command{
 }
 
 func init() {
-	jiraCmd.AddCommand(transitionCmd)
+	Cmd.AddCommand(transitionCmd)
 	transitionCmd.AddCommand(transitionListCmd)
 	transitionCmd.AddCommand(transitionDoCmd)
 }

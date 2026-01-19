@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/joselrodrigues/atlassian/cmd/confluence"
+	"github.com/joselrodrigues/atlassian/cmd/jira"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -11,7 +13,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "atlassian",
 	Short: "CLI for interacting with Atlassian products (Jira, Confluence)",
-	Long:  `A command-line interface for Atlassian products including Jira operations (issues, comments, transitions) and Confluence (planned).`,
+	Long:  `A command-line interface for Atlassian products including Jira operations (issues, comments, transitions) and Confluence (spaces, pages, search).`,
 }
 
 func Execute() {
@@ -26,19 +28,16 @@ func init() {
 
 	rootCmd.PersistentFlags().StringP("output", "o", "text", "Output format: text, json")
 	viper.BindPFlag("output", rootCmd.PersistentFlags().Lookup("output"))
+
+	rootCmd.AddCommand(jira.Cmd)
+	rootCmd.AddCommand(confluence.Cmd)
 }
 
 func initConfig() {
-	viper.SetEnvPrefix("JIRA")
 	viper.AutomaticEnv()
 
-	if viper.GetString("TOKEN") == "" {
-		fmt.Fprintln(os.Stderr, "Error: JIRA_TOKEN environment variable is required")
-		os.Exit(1)
-	}
-
-	if viper.GetString("BASE_URL") == "" {
-		fmt.Fprintln(os.Stderr, "Error: JIRA_BASE_URL environment variable is required")
-		os.Exit(1)
-	}
+	viper.BindEnv("jira_token", "JIRA_TOKEN")
+	viper.BindEnv("jira_base_url", "JIRA_BASE_URL")
+	viper.BindEnv("confluence_token", "CONFLUENCE_TOKEN")
+	viper.BindEnv("confluence_base_url", "CONFLUENCE_BASE_URL")
 }

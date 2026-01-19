@@ -1,6 +1,6 @@
 # atlassian
 
-A fast, lightweight command-line interface for Atlassian products (Jira, Confluence planned) built in Go.
+A fast, lightweight command-line interface for Atlassian products (Jira & Confluence) built in Go.
 
 ## Features
 
@@ -9,105 +9,166 @@ A fast, lightweight command-line interface for Atlassian products (Jira, Conflue
 - **Comments**: List and add comments to issues
 - **Transitions**: View available transitions and change issue status
 - **Sprint & My Issues**: Quick access to sprint issues and personal assignments
+
+### Confluence
+- **Space Management**: List spaces and get space details
+- **Page Operations**: List, get, create, and update pages
+- **Search**: Search content using CQL (Confluence Query Language)
+
+### General
 - **Multiple Output Formats**: Text (default) and JSON
 - **Single Binary**: No runtime dependencies required
-
-### Confluence (Planned)
-- Page management
-- Space operations
-- Content search
 
 ## Installation
 
 ### Prerequisites
 
 - Go 1.21 or higher
-- `JIRA_TOKEN` environment variable set with your Jira API token
 
 ### Build from Source
 
 ```bash
-# Clone or navigate to the project
 cd atlassian
 
-# Build the binary
 make build
 
-# Or build and install to /usr/local/bin
 make install
 ```
 
 ### Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `JIRA_TOKEN` | Yes | - | Jira API Bearer token |
-| `JIRA_BASE_URL` | Yes | - | Jira instance URL (e.g., `https://jira.company.com`) |
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `JIRA_TOKEN` | For Jira | Jira API Bearer token |
+| `JIRA_BASE_URL` | For Jira | Jira instance URL (e.g., `https://jira.company.com`) |
+| `CONFLUENCE_TOKEN` | For Confluence | Confluence API Bearer token |
+| `CONFLUENCE_BASE_URL` | For Confluence | Confluence instance URL (e.g., `https://confluence.company.com`) |
 
 ## Usage
 
+### Jira Commands
+
 All Jira commands are under the `jira` subcommand:
 
-### Get Issue Details
+#### Get Issue Details
 
 ```bash
 atlassian jira get PROJECT-123
-atlassian jira get PROJECT-123 -o json    # JSON output
+atlassian jira get PROJECT-123 -o json
 ```
 
-### Create Issue
+#### Create Issue
 
 ```bash
 atlassian jira create --project MYPROJ --type Story --summary "New feature"
 atlassian jira create -p MYPROJ -t Bug -s "Fix login" -d "Description here"
 
-# Read description from stdin (useful for long descriptions)
 echo "Long description..." | atlassian jira create -p MYPROJ -t Story -s "Title" --stdin
 ```
 
-### Update Issue
+#### Update Issue
 
 ```bash
 atlassian jira update PROJECT-123 --summary "Updated title"
 atlassian jira update PROJECT-123 --description "New description"
 
-# Read description from stdin
 cat description.txt | atlassian jira update PROJECT-123 --stdin
 ```
 
-### Search Issues (JQL)
+#### Search Issues (JQL)
 
 ```bash
 atlassian jira search "project = MYPROJ AND status = 'In Progress'"
 atlassian jira search "assignee = currentUser()" --max 100
 ```
 
-### My Issues
+#### My Issues
 
 ```bash
-atlassian jira my-issues                 # All my open issues
-atlassian jira my-issues -o json         # JSON output
+atlassian jira my-issues
+atlassian jira my-issues -o json
 ```
 
-### Sprint Issues
+#### Sprint Issues
 
 ```bash
-atlassian jira sprint --project MYPROJ   # Issues in current sprint
-atlassian jira sprint -p MYPROJ          # Short form
+atlassian jira sprint --project MYPROJ
+atlassian jira sprint -p MYPROJ
 ```
 
-### Comments
+#### Comments
 
 ```bash
 atlassian jira comment list PROJECT-123
 atlassian jira comment add PROJECT-123 "This is my comment"
 ```
 
-### Transitions
+#### Transitions
 
 ```bash
-atlassian jira transition list PROJECT-123              # See available transitions
-atlassian jira transition do PROJECT-123 "In Progress"  # Change status
+atlassian jira transition list PROJECT-123
+atlassian jira transition do PROJECT-123 "In Progress"
+```
+
+### Confluence Commands
+
+All Confluence commands are under the `confluence` subcommand (alias: `conf`):
+
+#### List Spaces
+
+```bash
+atlassian confluence spaces
+atlassian conf spaces --limit 50
+atlassian conf spaces -o json
+```
+
+#### Get Space Details
+
+```bash
+atlassian conf spaces MYSPACE
+atlassian conf spaces MYSPACE -o json
+```
+
+#### List Pages in a Space
+
+```bash
+atlassian conf pages --space MYSPACE
+atlassian conf pages -s MYSPACE --limit 50
+```
+
+#### Get Page by ID
+
+```bash
+atlassian conf get 123456
+atlassian conf get 123456 -o json
+atlassian conf get 123456 --body-format storage
+atlassian conf get 123456 --body-format view
+```
+
+#### Search Content (CQL)
+
+```bash
+atlassian conf search "space=MYSPACE"
+atlassian conf search "type=page AND title~'Documentation'"
+atlassian conf search "text~'API'" --limit 50
+```
+
+#### Create Page
+
+```bash
+atlassian conf create --space MYSPACE --title "New Page"
+atlassian conf create -s MYSPACE -t "Child Page" --parent 123456
+
+echo "<p>Page content</p>" | atlassian conf create -s MYSPACE -t "Page" --stdin
+```
+
+#### Update Page
+
+```bash
+atlassian conf update 123456 --title "New Title"
+atlassian conf update 123456 --message "Updated via CLI"
+
+echo "<p>New content</p>" | atlassian conf update 123456 --stdin
 ```
 
 ## Output Formats
@@ -117,12 +178,11 @@ atlassian jira transition do PROJECT-123 "In Progress"  # Change status
 Human-readable markdown-style tables:
 
 ```
-## PROJECT-123
-
-| Campo | Valor |
-|-------|-------|
-| **Summary** | Issue title |
-| **Status** | In Progress |
+| Field        | Value                |
+| ------------ | -------------------- |
+| ID           | 123456               |
+| Title        | My Page              |
+| Status       | current              |
 ```
 
 ### JSON
@@ -131,44 +191,49 @@ Machine-readable JSON output:
 
 ```bash
 atlassian jira get PROJECT-123 -o json
-```
-
-```json
-{
-  "key": "PROJECT-123",
-  "fields": {
-    "summary": "Issue title",
-    "status": { "name": "In Progress" }
-  }
-}
+atlassian conf spaces MYSPACE -o json
 ```
 
 ## Project Structure
 
 ```
 atlassian/
-├── main.go                 # Entry point
-├── go.mod                  # Go module definition
-├── Makefile                # Build automation
-├── cmd/                    # CLI commands (Cobra)
-│   ├── root.go             # Root command and config
-│   ├── jira.go             # Jira subcommand
-│   ├── get.go              # Get issue
-│   ├── create.go           # Create issue
-│   ├── update.go           # Update issue
-│   ├── search.go           # Search with JQL
-│   ├── myissues.go         # My assigned issues
-│   ├── sprint.go           # Sprint issues
-│   ├── comment.go          # Comment operations
-│   └── transition.go       # Transition operations
+├── main.go
+├── go.mod
+├── Makefile
+├── cmd/
+│   ├── root.go
+│   ├── jira/
+│   │   ├── jira.go
+│   │   ├── get.go
+│   │   ├── create.go
+│   │   ├── update.go
+│   │   ├── search.go
+│   │   ├── myissues.go
+│   │   ├── sprint.go
+│   │   ├── comment.go
+│   │   └── transition.go
+│   └── confluence/
+│       ├── confluence.go
+│       ├── spaces.go
+│       ├── pages.go
+│       ├── get.go
+│       ├── search.go
+│       ├── create.go
+│       └── update.go
 ├── internal/
-│   └── jira/               # Jira API client
-│       ├── client.go       # HTTP client
-│       ├── issues.go       # Issue operations
-│       ├── comments.go     # Comment operations
-│       └── transitions.go  # Transition operations
+│   ├── jira/
+│   │   ├── client.go
+│   │   ├── issues.go
+│   │   ├── comments.go
+│   │   └── transitions.go
+│   └── confluence/
+│       ├── client.go
+│       ├── spaces.go
+│       ├── pages.go
+│       └── search.go
 └── bin/
-    └── atlassian           # Compiled binary
+    └── atlassian
 ```
 
 ## Development
@@ -196,8 +261,8 @@ make build-all      # Build for macOS, Linux, Windows
 
 ## Dependencies
 
-- [cobra](https://github.com/spf13/cobra) v1.10.2 - CLI framework
-- [viper](https://github.com/spf13/viper) v1.21.0 - Configuration management
+- [cobra](https://github.com/spf13/cobra) - CLI framework
+- [viper](https://github.com/spf13/viper) - Configuration management
 
 ## License
 

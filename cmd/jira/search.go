@@ -1,4 +1,4 @@
-package cmd
+package jira
 
 import (
 	"encoding/json"
@@ -36,7 +36,7 @@ var searchCmd = &cobra.Command{
 }
 
 func init() {
-	jiraCmd.AddCommand(searchCmd)
+	Cmd.AddCommand(searchCmd)
 	searchCmd.Flags().IntP("max", "m", 50, "Maximum results to return")
 }
 

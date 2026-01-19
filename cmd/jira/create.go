@@ -1,4 +1,4 @@
-package cmd
+package jira
 
 import (
 	"bufio"
@@ -52,7 +52,7 @@ var createCmd = &cobra.Command{
 			return nil
 		}
 
-		baseURL := strings.TrimSuffix(viper.GetString("BASE_URL"), "/")
+		baseURL := strings.TrimSuffix(viper.GetString("jira_base_url"), "/")
 		fmt.Printf("Issue created successfully!\n")
 		fmt.Printf("Key: %s\n", resp.Key)
 		fmt.Printf("URL: %s/browse/%s\n", baseURL, resp.Key)
@@ -62,7 +62,7 @@ var createCmd = &cobra.Command{
 }
 
 func init() {
-	jiraCmd.AddCommand(createCmd)
+	Cmd.AddCommand(createCmd)
 
 	createCmd.Flags().StringP("project", "p", "", "Project key (required)")
 	createCmd.MarkFlagRequired("project")

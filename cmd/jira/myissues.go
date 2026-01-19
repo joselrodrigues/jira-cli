@@ -1,4 +1,4 @@
-package cmd
+package jira
 
 import (
 	"encoding/json"
@@ -32,5 +32,5 @@ var myIssuesCmd = &cobra.Command{
 }
 
 func init() {
-	jiraCmd.AddCommand(myIssuesCmd)
+	Cmd.AddCommand(myIssuesCmd)
 }

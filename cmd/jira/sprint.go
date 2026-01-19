@@ -1,4 +1,4 @@
-package cmd
+package jira
 
 import (
 	"encoding/json"
@@ -35,7 +35,7 @@ var sprintCmd = &cobra.Command{
 }
 
 func init() {
-	jiraCmd.AddCommand(sprintCmd)
+	Cmd.AddCommand(sprintCmd)
 	sprintCmd.Flags().StringP("project", "p", "", "Project key (required)")
 	sprintCmd.MarkFlagRequired("project")
 }

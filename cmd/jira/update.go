@@ -1,4 +1,4 @@
-package cmd
+package jira
 
 import (
 	"bufio"
@@ -52,7 +52,7 @@ var updateCmd = &cobra.Command{
 			return fmt.Errorf("failed to update issue: %w", err)
 		}
 
-		baseURL := strings.TrimSuffix(viper.GetString("BASE_URL"), "/")
+		baseURL := strings.TrimSuffix(viper.GetString("jira_base_url"), "/")
 		fmt.Printf("Issue %s updated successfully!\n", issueKey)
 		fmt.Printf("URL: %s/browse/%s\n", baseURL, issueKey)
 
@@ -61,7 +61,7 @@ var updateCmd = &cobra.Command{
 }
 
 func init() {
-	jiraCmd.AddCommand(updateCmd)
+	Cmd.AddCommand(updateCmd)
 
 	updateCmd.Flags().StringP("summary", "s", "", "New summary")
 	updateCmd.Flags().StringP("description", "d", "", "New description")

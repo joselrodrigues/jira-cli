@@ -1,4 +1,4 @@
-package jira
+package confluence
 
 import (
 	"bytes"
@@ -21,8 +21,8 @@ type Client struct {
 }
 
 func NewClient() *Client {
-	token := strings.TrimSpace(viper.GetString("jira_token"))
-	baseURL := strings.TrimSuffix(viper.GetString("jira_base_url"), "/")
+	token := strings.TrimSpace(viper.GetString("confluence_token"))
+	baseURL := strings.TrimSuffix(viper.GetString("confluence_base_url"), "/")
 
 	return &Client{
 		baseURL: baseURL,
@@ -43,8 +43,8 @@ func (c *Client) doRequest(method, endpoint string, body interface{}) ([]byte, e
 		bodyReader = bytes.NewReader(jsonBody)
 	}
 
-	url := fmt.Sprintf("%s/rest/api/2%s", c.baseURL, endpoint)
-	req, err := http.NewRequest(method, url, bodyReader)
+	apiURL := fmt.Sprintf("%s/rest/api%s", c.baseURL, endpoint)
+	req, err := http.NewRequest(method, apiURL, bodyReader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -53,6 +53,7 @@ func (c *Client) doRequest(method, endpoint string, body interface{}) ([]byte, e
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AtlassianCLI/1.0")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -94,14 +95,18 @@ func (c *Client) Put(endpoint string, body interface{}) ([]byte, error) {
 	return c.doRequest(http.MethodPut, endpoint, body)
 }
 
-func (c *Client) Search(jql string, fields []string, maxResults int) ([]byte, error) {
+func (c *Client) Delete(endpoint string) ([]byte, error) {
+	return c.doRequest(http.MethodDelete, endpoint, nil)
+}
+
+func (c *Client) Search(cql string, expand []string, limit int) ([]byte, error) {
 	params := url.Values{}
-	params.Set("jql", jql)
-	params.Set("maxResults", fmt.Sprintf("%d", maxResults))
-	if len(fields) > 0 {
-		params.Set("fields", strings.Join(fields, ","))
+	params.Set("cql", cql)
+	params.Set("limit", fmt.Sprintf("%d", limit))
+	if len(expand) > 0 {
+		params.Set("expand", strings.Join(expand, ","))
 	}
 
-	endpoint := "/search?" + params.Encode()
+	endpoint := "/content/search?" + params.Encode()
 	return c.Get(endpoint)
 }

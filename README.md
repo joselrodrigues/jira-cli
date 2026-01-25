@@ -6,6 +6,11 @@ A fast, lightweight command-line interface for Atlassian products (Jira & Conflu
 
 ### Jira
 - **Issue Management**: Get, create, update, and search issues
+- **Assignments**: Assign/unassign users to issues
+- **Story Points**: Set story points on issues
+- **Sprints**: List boards, sprints, and move issues between sprints
+- **Users**: Search for users to get accountId
+- **Fields**: Discover custom field IDs (Story Points, Sprint, etc.)
 - **Comments**: List and add comments to issues
 - **Transitions**: View available transitions and change issue status
 - **Sprint & My Issues**: Quick access to sprint issues and personal assignments
@@ -71,8 +76,53 @@ echo "Long description..." | atlassian jira create -p MYPROJ -t Story -s "Title"
 ```bash
 atlassian jira update PROJECT-123 --summary "Updated title"
 atlassian jira update PROJECT-123 --description "New description"
+atlassian jira update PROJECT-123 --assignee user@email.com
+atlassian jira update PROJECT-123 --points 5
+atlassian jira update PROJECT-123 --sprint 123
+
+# Combine multiple updates
+atlassian jira update PROJECT-123 -a user@email.com -p 5 --sprint 123
 
 cat description.txt | atlassian jira update PROJECT-123 --stdin
+```
+
+#### Assign Issue
+
+```bash
+atlassian jira assign PROJECT-123 user@email.com
+atlassian jira assign PROJECT-123 5b10ac8d82e05b22cc7d4ef5
+atlassian jira assign PROJECT-123 --unassign
+```
+
+#### Search Users
+
+```bash
+atlassian jira users --query "john"
+atlassian jira users -q "john@company.com" -o json
+```
+
+#### List Boards
+
+```bash
+atlassian jira boards
+atlassian jira boards --project MYPROJ
+atlassian jira boards -o json
+```
+
+#### List Sprints
+
+```bash
+atlassian jira sprints --board 123
+atlassian jira sprints -b 123 --state active
+atlassian jira sprints -b 123 --state future -o json
+```
+
+#### List Fields
+
+```bash
+atlassian jira fields
+atlassian jira fields --name "Story Points"
+atlassian jira fields --custom -o json
 ```
 
 #### Search Issues (JQL)
@@ -211,6 +261,11 @@ atlassian/
 │   │   ├── search.go
 │   │   ├── myissues.go
 │   │   ├── sprint.go
+│   │   ├── sprints.go
+│   │   ├── boards.go
+│   │   ├── assign.go
+│   │   ├── users.go
+│   │   ├── fields.go
 │   │   ├── comment.go
 │   │   └── transition.go
 │   └── confluence/
@@ -226,7 +281,10 @@ atlassian/
 │   │   ├── client.go
 │   │   ├── issues.go
 │   │   ├── comments.go
-│   │   └── transitions.go
+│   │   ├── transitions.go
+│   │   ├── users.go
+│   │   ├── fields.go
+│   │   └── agile.go
 │   └── confluence/
 │       ├── client.go
 │       ├── spaces.go

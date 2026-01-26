@@ -42,6 +42,9 @@ Supports updating summary, description, assignee, story points, and sprint.`,
 		}
 
 		client := jira.NewClient()
+		if err := client.DetectInstanceType(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: could not detect Jira instance type: %v\n", err)
+		}
 		fields := make(map[string]interface{})
 
 		if summary != "" {
@@ -55,7 +58,7 @@ Supports updating summary, description, assignee, story points, and sprint.`,
 		}
 
 		if assignee != "" {
-			var accountID string
+			var userID string
 			if strings.Contains(assignee, "@") {
 				users, err := client.SearchUsers(assignee)
 				if err != nil {
@@ -64,16 +67,16 @@ Supports updating summary, description, assignee, story points, and sprint.`,
 				if len(users) == 0 {
 					return fmt.Errorf("no user found with email: %s", assignee)
 				}
-				accountID = users[0].AccountID
-				fmt.Printf("Found user: %s (%s)\n", users[0].DisplayName, users[0].AccountID)
+				userID = users[0].GetIdentifier(client.IsCloud())
+				fmt.Printf("Found user: %s (%s)\n", users[0].DisplayName, userID)
 			} else {
-				accountID = assignee
+				userID = assignee
 			}
 
-			if err := client.AssignIssue(issueKey, accountID); err != nil {
+			if err := client.AssignIssue(issueKey, userID); err != nil {
 				return fmt.Errorf("failed to assign issue: %w", err)
 			}
-			fmt.Printf("Issue %s assigned to %s\n", issueKey, accountID)
+			fmt.Printf("Issue %s assigned to %s\n", issueKey, userID)
 		}
 
 		if sprintID != 0 {

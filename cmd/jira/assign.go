@@ -2,6 +2,7 @@ package jira
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/joselrodrigues/atlassian/internal/jira"
@@ -21,6 +22,9 @@ Use --unassign to remove the current assignee.`,
 		unassign, _ := cmd.Flags().GetBool("unassign")
 
 		client := jira.NewClient()
+		if err := client.DetectInstanceType(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: could not detect Jira instance type: %v\n", err)
+		}
 
 		if unassign {
 			if err := client.AssignIssue(issueKey, ""); err != nil {
@@ -38,7 +42,7 @@ Use --unassign to remove the current assignee.`,
 		}
 
 		userInput := args[1]
-		var accountID string
+		var userID string
 
 		if strings.Contains(userInput, "@") {
 			users, err := client.SearchUsers(userInput)
@@ -50,13 +54,13 @@ Use --unassign to remove the current assignee.`,
 				return fmt.Errorf("no user found with email: %s", userInput)
 			}
 
-			accountID = users[0].AccountID
-			fmt.Printf("Found user: %s (%s)\n", users[0].DisplayName, users[0].AccountID)
+			userID = users[0].GetIdentifier(client.IsCloud())
+			fmt.Printf("Found user: %s (%s)\n", users[0].DisplayName, userID)
 		} else {
-			accountID = userInput
+			userID = userInput
 		}
 
-		if err := client.AssignIssue(issueKey, accountID); err != nil {
+		if err := client.AssignIssue(issueKey, userID); err != nil {
 			return fmt.Errorf("failed to assign issue: %w", err)
 		}
 

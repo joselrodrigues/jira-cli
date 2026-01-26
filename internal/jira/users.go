@@ -7,11 +7,20 @@ import (
 )
 
 type UserSearchResult struct {
-	AccountID    string `json:"accountId"`
+	AccountID    string `json:"accountId,omitempty"`
+	Name         string `json:"name,omitempty"`
+	Key          string `json:"key,omitempty"`
 	DisplayName  string `json:"displayName"`
 	EmailAddress string `json:"emailAddress,omitempty"`
 	Active       bool   `json:"active"`
 	AccountType  string `json:"accountType,omitempty"`
+}
+
+func (u *UserSearchResult) GetIdentifier(isCloud bool) string {
+	if isCloud {
+		return u.AccountID
+	}
+	return u.Name
 }
 
 func (c *Client) SearchUsers(query string) ([]UserSearchResult, error) {
@@ -32,12 +41,14 @@ func (c *Client) SearchUsers(query string) ([]UserSearchResult, error) {
 	return users, nil
 }
 
-func (c *Client) AssignIssue(issueKey, accountID string) error {
-	body := map[string]interface{}{
-		"accountId": accountID,
-	}
-	if accountID == "" {
-		body["accountId"] = nil
+func (c *Client) AssignIssue(issueKey, userIdentifier string) error {
+	var body map[string]interface{}
+	if userIdentifier == "" {
+		body = map[string]interface{}{"accountId": nil, "name": nil}
+	} else if c.isCloud {
+		body = map[string]interface{}{"accountId": userIdentifier}
+	} else {
+		body = map[string]interface{}{"name": userIdentifier}
 	}
 
 	_, err := c.Put(fmt.Sprintf("/issue/%s/assignee", issueKey), body)

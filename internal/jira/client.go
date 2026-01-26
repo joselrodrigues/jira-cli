@@ -18,6 +18,27 @@ type Client struct {
 	baseURL    string
 	token      string
 	httpClient *http.Client
+	isCloud    bool
+}
+
+func (c *Client) IsCloud() bool {
+	return c.isCloud
+}
+
+func (c *Client) DetectInstanceType() error {
+	data, err := c.Get("/myself")
+	if err != nil {
+		return err
+	}
+	var user struct {
+		AccountID string `json:"accountId"`
+		Name      string `json:"name"`
+	}
+	if err := json.Unmarshal(data, &user); err != nil {
+		return err
+	}
+	c.isCloud = (user.AccountID != "" && user.Name == "")
+	return nil
 }
 
 func NewClient() *Client {
